@@ -186,8 +186,8 @@ export default function HomePage() {
           Powerful <span className="text-purple-400">Features</span>
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-          {[
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
+           {[
             {
               title: "Auto Fetch Assignments",
               desc: "Instantly syncs with Google Classroom and lists all your assignments automatically.",
