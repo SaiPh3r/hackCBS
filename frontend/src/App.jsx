@@ -1,5 +1,4 @@
 import React from 'react'
-import HomePage from './pages/homePage'
 import ClassroomDashboard from './ClassroomDashboard'
 
 
