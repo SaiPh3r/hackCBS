@@ -4,3 +4,11 @@ pymongo[srv]
 python-dotenv
 google-auth-oauthlib
 google-api-python-client
+google-generativeai
+PyPDF2
+langchain
+langchain-community
+faiss-cpu
+sentence-transformers
+langchain-google-genai
+python-multipart
