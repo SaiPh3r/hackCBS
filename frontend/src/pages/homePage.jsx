@@ -1,22 +1,92 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Menu, X, ArrowRight, CheckCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+  // Refs for animations
+  const heroRef = useRef(null);
+  const featuresRef = useRef(null);
+  const aboutRef = useRef(null);
+  const pricingRef = useRef(null);
+  const navbarRef = useRef(null);
+
+  useEffect(() => {
+    // Navbar fade-in
+    gsap.from(navbarRef.current, {
+      opacity: 0,
+      y: -40,
+      duration: 1,
+      ease: "power3.out",
+    });
+
+    // Hero text animation
+    gsap.from(heroRef.current.children, {
+      y: 80,
+      opacity: 0,
+      duration: 1,
+      ease: "power3.out",
+      stagger: 0.15,
+      delay: 0.3,
+    });
+
+    // Features animation on scroll
+    gsap.from(featuresRef.current.children, {
+      scrollTrigger: {
+        trigger: featuresRef.current,
+        start: "top 80%",
+      },
+      opacity: 0,
+      y: 50,
+      duration: 0.8,
+      stagger: 0.15,
+      ease: "power2.out",
+    });
+
+    // About section fade in
+    gsap.from(aboutRef.current, {
+      scrollTrigger: {
+        trigger: aboutRef.current,
+        start: "top 80%",
+      },
+      opacity: 0,
+      y: 50,
+      duration: 1,
+      ease: "power2.out",
+    });
+
+    // Pricing section animation
+    gsap.from(pricingRef.current.children, {
+      scrollTrigger: {
+        trigger: pricingRef.current,
+        start: "top 80%",
+      },
+      opacity: 0,
+      scale: 0.9,
+      duration: 1,
+      stagger: 0.15,
+      ease: "back.out(1.7)",
+    });
+  }, []);
+
   return (
     <div className="font-sans bg-black text-white min-h-screen scroll-smooth">
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 w-full bg-black/90 backdrop-blur-md z-50 border-b border-purple-800/20">
+      <nav
+        ref={navbarRef}
+        className="fixed top-0 left-0 w-full bg-black/90 backdrop-blur-md z-50 border-b border-purple-800/20"
+      >
         <div className="max-w-7xl mx-auto flex justify-between items-center px-8 py-5">
-          {/* Logo */}
           <h1 className="text-2xl font-bold tracking-tight text-white">
             Assignly
           </h1>
 
-          {/* Centered Links */}
           <div className="hidden md:flex gap-10 text-lg font-medium">
             <a href="#home" className="hover:text-purple-400 transition">
               Home
@@ -32,7 +102,6 @@ export default function HomePage() {
             </a>
           </div>
 
-          {/* Right CTA */}
           <button
             onClick={() => navigate("/ClassroomDashboard")}
             className="hidden md:flex bg-purple-600 hover:bg-purple-700 px-5 py-2 rounded-md font-semibold transition items-center gap-2"
@@ -40,7 +109,6 @@ export default function HomePage() {
             Connect Your Classroom <ArrowRight size={18} />
           </button>
 
-          {/* Mobile Menu Toggle */}
           <button
             className="md:hidden text-gray-200"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -49,7 +117,6 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Mobile Menu */}
         {menuOpen && (
           <div className="md:hidden bg-black flex flex-col items-center py-4 gap-4 text-lg border-t border-purple-900/30">
             <a href="#home" onClick={() => setMenuOpen(false)}>
@@ -81,6 +148,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section
         id="home"
+        ref={heroRef}
         className="flex flex-col items-center justify-center text-center min-h-screen px-6 pt-32 bg-black"
       >
         <div className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
@@ -111,6 +179,7 @@ export default function HomePage() {
       {/* Features Section */}
       <section
         id="features"
+        ref={featuresRef}
         className="py-24 px-6 bg-black text-center border-t border-purple-900/30"
       >
         <h2 className="text-4xl font-bold mb-12">
@@ -159,6 +228,7 @@ export default function HomePage() {
       {/* About Section */}
       <section
         id="about"
+        ref={aboutRef}
         className="py-24 px-6 bg-black text-center border-t border-purple-900/30"
       >
         <div className="max-w-3xl mx-auto">
@@ -178,6 +248,7 @@ export default function HomePage() {
       {/* Pricing Section */}
       <section
         id="pricing"
+        ref={pricingRef}
         className="py-24 px-6 bg-black text-center border-t border-purple-900/30"
       >
         <h2 className="text-4xl font-bold mb-12 text-purple-400">Pricing</h2>

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageCircle, Paperclip, X } from "lucide-react";
+import ChatBot from "../components/ChatBot";
 
 const BASE_URL = "http://localhost:2000";
 
@@ -10,11 +10,9 @@ export default function ClassroomDashboard() {
   const [assignments, setAssignments] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState(false); // 👈 modal state
-  const [uploadedFile, setUploadedFile] = useState(null); // 👈 store uploaded file
+
   const navigate = useNavigate();
 
-  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchCoursesOnLoad();
@@ -89,20 +87,9 @@ export default function ClassroomDashboard() {
   };
 
   // 👇 Handle file upload logic
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) setUploadedFile(file);
-  };
 
-  const handleSendFile = () => {
-    if (uploadedFile) {
-      console.log("File sent:", uploadedFile.name);
-      alert(`"${uploadedFile.name}" sent successfully!`);
-      setShowUploadModal(false);
-      setUploadedFile(null);
-    }
-  };
 
+  
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white flex">
       {/* Sidebar */}
@@ -122,6 +109,13 @@ export default function ClassroomDashboard() {
             >
               <span className="text-lg mr-2">📘</span>
               <span>Courses</span>
+            </button>
+            <button
+              onClick={fetchCourses}
+              className="flex items-center w-full px-3 py-2 rounded-lg text-left hover:bg-purple-800/20 hover:text-purple-400 transition-all duration-200"
+            >
+              <span className="text-lg mr-2">📘</span>
+              <span>Upload book</span>
             </button>
 
             <button
@@ -228,91 +222,7 @@ export default function ClassroomDashboard() {
       </main>
 
       {/* Chat Aside */}
-      <aside className="w-[350px] border-l border-purple-900/30 bg-[#0a0a0a] p-6 flex flex-col">
-        <div className="flex items-center gap-3 mb-4">
-          <MessageCircle className="text-purple-400" size={24} />
-          <h3 className="text-xl font-semibold">Assignly AI</h3>
-        </div>
-
-        <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-          <div className="bg-purple-700/30 p-3 rounded-lg self-start w-fit">
-            Hey! Need help completing your unsubmitted assignments?
-          </div>
-          <div className="bg-purple-600 p-3 rounded-lg self-end w-fit ml-auto">
-            Yes, show me what's pending.
-          </div>
-        </div>
-
-        {/* Upload & Input Section */}
-        <div className="flex gap-2 items-center">
-          <button
-            onClick={() => setShowUploadModal(true)} 
-            className="bg-purple-700 hover:bg-purple-800 px-3 py-2 rounded-md text-sm font-semibold flex items-center gap-2"
-          >
-            <Paperclip size={16} />
-          </button>
-
-          <input
-            type="text"
-            placeholder="Ask Assignly AI..."
-            className="flex-1 bg-[#111] border border-purple-800/40 rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-600"
-          />
-          <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-md text-sm font-semibold">
-            Send
-          </button>
-        </div>
-      </aside>
-
-      {/* 🔮 Upload Modal */}
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-[#121212] border border-purple-800 rounded-2xl p-8 w-[400px] text-center shadow-2xl relative">
-            {/* Close Button */}
-            <button
-              onClick={() => {
-                setShowUploadModal(false);
-                setUploadedFile(null);
-              }}
-              className="absolute top-3 right-3 text-gray-400 hover:text-white"
-            >
-              <X size={20} />
-            </button>
-
-            <h3 className="text-2xl font-semibold mb-6 bg-gradient-to-r from-purple-400 to-fuchsia-500 bg-clip-text text-transparent">
-              Upload to Assignly Classroom
-            </h3>
-
-            {!uploadedFile ? (
-              <>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <button
-                  onClick={() => fileInputRef.current.click()}
-                  className="px-6 py-3 bg-purple-700 hover:bg-purple-800 rounded-lg font-semibold"
-                >
-                  Choose File
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="text-gray-300 mb-4">
-                  Selected: <span className="font-semibold">{uploadedFile.name}</span>
-                </p>
-                <button
-                  onClick={handleSendFile}
-                  className="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold"
-                >
-                  Send
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      <ChatBot />
     </div>
   );
 }
