@@ -1,11 +1,12 @@
 import React from 'react'
 import HomePage from './pages/homePage'
+import ClassroomDashboard from './ClassroomDashboard'
 
 
 const App = () => {
   return (
     <div>
-      <HomePage/>
+      <ClassroomDashboard />
     </div>
   )
 }
