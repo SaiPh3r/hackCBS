@@ -1,16 +1,10 @@
 import React, { useState } from "react";
 import { Menu, X, ArrowRight, CheckCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
-
-
-
-  const classroomClick = ()=>{
-    navigate('/classroom')
-  }
 
   return (
     <div className="font-sans bg-black text-white min-h-screen scroll-smooth">
@@ -39,7 +33,10 @@ export default function HomePage() {
           </div>
 
           {/* Right CTA */}
-          <button className="hidden md:block bg-purple-600 hover:bg-purple-700 px-5 py-2 rounded-md font-semibold transition flex items-center gap-2">
+          <button
+            onClick={() => navigate("/ClassroomDashboard")}
+            className="hidden md:flex bg-purple-600 hover:bg-purple-700 px-5 py-2 rounded-md font-semibold transition items-center gap-2"
+          >
             Connect Your Classroom <ArrowRight size={18} />
           </button>
 
@@ -67,7 +64,14 @@ export default function HomePage() {
             <a href="#pricing" onClick={() => setMenuOpen(false)}>
               Pricing
             </a>
-            <button onClick={classroomClick} className="bg-purple-600 hover:bg-purple-700 px-5 py-2 rounded-md font-semibold transition flex items-center gap-2 text-xl">
+
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                navigate("/ClassroomDashboard");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 px-5 py-2 rounded-md font-semibold transition flex items-center gap-2 text-xl"
+            >
               Connect Your Classroom <ArrowRight size={18} />
             </button>
           </div>
@@ -80,9 +84,9 @@ export default function HomePage() {
         className="flex flex-col items-center justify-center text-center min-h-screen px-6 pt-32 bg-black"
       >
         <div className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-          <div className="flex">
-            Manage Your
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
+          <div className="flex justify-center flex-wrap">
+            Manage Your{" "}
+            <span className="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
               Assignments
             </span>
           </div>
@@ -96,7 +100,10 @@ export default function HomePage() {
           effortlessly.
         </p>
 
-        <button className="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold px-8 py-3 rounded-lg text-lg shadow-lg transition flex items-center gap-2">
+        <button
+          onClick={() => navigate("/ClassroomDashboard")}
+          className="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold px-8 py-3 rounded-lg text-lg shadow-lg transition flex items-center gap-2"
+        >
           Connect Your Classroom <ArrowRight size={20} />
         </button>
       </section>
