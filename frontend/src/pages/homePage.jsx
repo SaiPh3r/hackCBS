@@ -1,8 +1,16 @@
 import React, { useState } from "react";
 import { Menu, X, ArrowRight, CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+
+
+  const classroomClick = ()=>{
+    navigate('/classroom')
+  }
 
   return (
     <div className="font-sans bg-black text-white min-h-screen scroll-smooth">
@@ -10,14 +18,24 @@ export default function HomePage() {
       <nav className="fixed top-0 left-0 w-full bg-black/90 backdrop-blur-md z-50 border-b border-purple-800/20">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-8 py-5">
           {/* Logo */}
-          <h1 className="text-2xl font-bold tracking-tight text-white">Assignly</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-white">
+            Assignly
+          </h1>
 
           {/* Centered Links */}
           <div className="hidden md:flex gap-10 text-lg font-medium">
-            <a href="#home" className="hover:text-purple-400 transition">Home</a>
-            <a href="#features" className="hover:text-purple-400 transition">Features</a>
-            <a href="#about" className="hover:text-purple-400 transition">About</a>
-            <a href="#pricing" className="hover:text-purple-400 transition">Pricing</a>
+            <a href="#home" className="hover:text-purple-400 transition">
+              Home
+            </a>
+            <a href="#features" className="hover:text-purple-400 transition">
+              Features
+            </a>
+            <a href="#about" className="hover:text-purple-400 transition">
+              About
+            </a>
+            <a href="#pricing" className="hover:text-purple-400 transition">
+              Pricing
+            </a>
           </div>
 
           {/* Right CTA */}
@@ -37,11 +55,19 @@ export default function HomePage() {
         {/* Mobile Menu */}
         {menuOpen && (
           <div className="md:hidden bg-black flex flex-col items-center py-4 gap-4 text-lg border-t border-purple-900/30">
-            <a href="#home" onClick={() => setMenuOpen(false)}>Home</a>
-            <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
-            <a href="#about" onClick={() => setMenuOpen(false)}>About</a>
-            <a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
-            <button className="bg-purple-600 hover:bg-purple-700 px-5 py-2 rounded-md font-semibold transition flex items-center gap-2">
+            <a href="#home" onClick={() => setMenuOpen(false)}>
+              Home
+            </a>
+            <a href="#features" onClick={() => setMenuOpen(false)}>
+              Features
+            </a>
+            <a href="#about" onClick={() => setMenuOpen(false)}>
+              About
+            </a>
+            <a href="#pricing" onClick={() => setMenuOpen(false)}>
+              Pricing
+            </a>
+            <button onClick={classroomClick} className="bg-purple-600 hover:bg-purple-700 px-5 py-2 rounded-md font-semibold transition flex items-center gap-2 text-xl">
               Connect Your Classroom <ArrowRight size={18} />
             </button>
           </div>
@@ -53,18 +79,21 @@ export default function HomePage() {
         id="home"
         className="flex flex-col items-center justify-center text-center min-h-screen px-6 pt-32 bg-black"
       >
-        <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-          Manage Your{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
-            Assignments
-          </span>
+        <div className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
+          <div className="flex">
+            Manage Your
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
+              Assignments
+            </span>
+          </div>
           <br />
           Smarter & Faster.
-        </h1>
+        </div>
 
         <p className="text-gray-400 text-lg max-w-2xl mb-10">
           Assignly syncs with Google Classroom to fetch your upcoming tasks,
-          track unsubmitted work, and keep your academic life organized effortlessly.
+          track unsubmitted work, and keep your academic life organized
+          effortlessly.
         </p>
 
         <button className="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-semibold px-8 py-3 rounded-lg text-lg shadow-lg transition flex items-center gap-2">
@@ -73,7 +102,10 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 px-6 bg-black text-center border-t border-purple-900/30">
+      <section
+        id="features"
+        className="py-24 px-6 bg-black text-center border-t border-purple-900/30"
+      >
         <h2 className="text-4xl font-bold mb-12">
           Powerful <span className="text-purple-400">Features</span>
         </h2>
@@ -118,29 +150,51 @@ export default function HomePage() {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-24 px-6 bg-black text-center border-t border-purple-900/30">
+      <section
+        id="about"
+        className="py-24 px-6 bg-black text-center border-t border-purple-900/30"
+      >
         <div className="max-w-3xl mx-auto">
           <h2 className="text-4xl font-bold mb-6">
-            Built for <span className="text-purple-400">Students</span>, Loved by{" "}
-            <span className="text-purple-400">Learners</span>
+            Built for <span className="text-purple-400">Students</span>, Loved
+            by <span className="text-purple-400">Learners</span>
           </h2>
           <p className="text-gray-400 text-lg">
-            Assignly integrates directly with your Google Classroom account — fetching all
-            your assignments automatically. It highlights unturned tasks, due dates, and
-            provides reminders so you never miss a submission again.
+            Assignly integrates directly with your Google Classroom account —
+            fetching all your assignments automatically. It highlights unturned
+            tasks, due dates, and provides reminders so you never miss a
+            submission again.
           </p>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-24 px-6 bg-black text-center border-t border-purple-900/30">
+      <section
+        id="pricing"
+        className="py-24 px-6 bg-black text-center border-t border-purple-900/30"
+      >
         <h2 className="text-4xl font-bold mb-12 text-purple-400">Pricing</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {[
-            { name: "Free", price: "$0", desc: "For students managing a few classes.", button: "Get Started" },
-            { name: "Pro", price: "$5/mo", desc: "Perfect for power users and educators.", button: "Upgrade" },
-            { name: "Team", price: "$15/mo", desc: "For schools & collaborative study groups.", button: "Contact Us" },
+            {
+              name: "Free",
+              price: "$0",
+              desc: "For students managing a few classes.",
+              button: "Get Started",
+            },
+            {
+              name: "Pro",
+              price: "$5/mo",
+              desc: "Perfect for power users and educators.",
+              button: "Upgrade",
+            },
+            {
+              name: "Team",
+              price: "$15/mo",
+              desc: "For schools & collaborative study groups.",
+              button: "Contact Us",
+            },
           ].map((plan, i) => (
             <div
               key={i}
