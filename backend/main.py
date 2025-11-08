@@ -17,9 +17,9 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from fastapi import UploadFile, File
 from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain.prompts import PromptTemplate,ChatPromptTemplate,MessagesPlaceholder
+from langchain_core.prompts import PromptTemplate,ChatPromptTemplate,MessagesPlaceholder
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 load_dotenv()
