@@ -26,24 +26,13 @@ load_dotenv()
 
 emb = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
 
-
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 retriever = None
 stored_files = []  
 retrieval = None
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")   # cloud LLM
-prompt = PromptTemplate(
-    template="""
-        Answer the user's question below in a clear, concise, and informative way.
-        If the answer cannot be found in the context, simply say:
-        I am not sure based on the given document.
-
-        CONTEXT:
-        {context}
-
-        QUESTION: {question}
-    """,
-    input_variables=["context","question"]
-)
+assignment_text=""
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")   # cloud LLM
 
 app.add_middleware(
     CORSMiddleware,
@@ -79,6 +68,15 @@ def login():
         include_granted_scopes='true'
     )
     return {"auth_url": auth_url}
+
+def convert(messages):
+    chat_history=[]
+    for item in messages:
+        if(item["sender"]=="user"):
+            chat_history.append({"role":"user","content":item["text"]})
+        else:
+            chat_history.append({"role":"assistant","content":item["text"]})
+    return chat_history
 
 @app.get("/oauth2callback")
 def oauth2callback(request: Request):
@@ -170,6 +168,7 @@ def assignment_details(course_id: str = Query(...), assignment_id: str = Query(.
         "submissions": submissions
     }
 
+
 @app.get("/download_file")
 def download_file(file_id: str):
     if not user_creds:
@@ -185,56 +184,77 @@ def download_file(file_id: str):
     while not done:
         status, done = downloader.next_chunk()
 
+    # now extract
     fh.seek(0)
+    pdf_reader = PdfReader(fh)
 
-    # save locally
-    os.makedirs("downloads", exist_ok=True)
-    save_path = "downloads/output.pdf"
-    with open(save_path, "wb") as f:
-        f.write(fh.read())
+    text = ""
+    global assignment_text
+      # store assignment pdf text here
 
+    
+    for page in pdf_reader.pages:
+        text += page.extract_text()
+    assignment_text=text
+    # return text directly
     return {
-        "message": "saved",
-        "path": save_path
+        "text": text
     }
+    
 
+@app.post("/upload_assignment/")
+async def upload_pdf(file: UploadFile = File(...)):
+    global retrieval
+    pdf_bytes = await file.read()
 
-# @app.post("/upload_assignment/")
-# async def upload_pdf(file: UploadFile = File(...)):
-#     global retrieval
-#     pdf_bytes = await file.read()
-
-#     pdf_reader = PdfReader(io.BytesIO(pdf_bytes))
-#     text = ""
-#     for page in pdf_reader.pages:
-#         text += page.extract_text()
+    pdf_reader = PdfReader(io.BytesIO(pdf_bytes))
+    text = ""
+    for page in pdf_reader.pages:
+        text += page.extract_text()
 
     
 
    
-#     return {"message": "PDF processed successfully"}
+    return {"message": "PDF processed successfully"}
 
      # will store list:  {"source": "Book" | "Assignment", "path": "...."}
 
 
 splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 
-prompt = ChatPromptTemplate.from_messages([
-    ("system",
-     """You are an assignment solving AI.
+prompt = ChatPromptTemplate(messages=[
+    ("system", """
+You are an assignment solving AI.
 
-Use ONLY context from BOOK + ASSIGNMENT.
-If required info not in context → reply:
-"Not enough information in provided content."
-     """),
+Input you will get:
+1) ASSIGNMENT TEXT  → the actual questions + instructions extracted from classroom PDF
+2) BOOK CONTEXT     → knowledge reference from course book
+3) USER QUESTION    → student asking about a specific part
+ ANSWER all questions
+Rules:
+- Your answer MUST follow assignment instructions
+- Use BOOK only for theory support / definitions
+- If necessary info is not present in EITHER assignment or book → ans on ur own
+- Write academically. No casual language.
+- 
+"""),
     MessagesPlaceholder("chat_history"),
-    ("human", "{question}")
-])
+    ("human", """
+ASSIGNMENT:
+{assignment_instructions}
 
+BOOK CONTEXT:
+{context}
+
+QUESTION:
+{question}
+""")
+])
 
 class AskInput(BaseModel):
     question: str
     chat_history: list = []
+    description: str = "" 
 
 
 def rebuild_vectorstore():
@@ -245,6 +265,7 @@ def rebuild_vectorstore():
     for entry in stored_files:
         loader = PyPDFLoader(entry["path"])
         pages = loader.load()
+        print(pages)
         chunks = splitter.split_documents(pages)
         for c in chunks:
             c.metadata["source"] = entry["source"]
@@ -267,31 +288,38 @@ async def upload_book(file: UploadFile = File(...)):
     return {"status": "book stored & vector updated"}
 
 
-@app.post("/upload/assignment")
-async def upload_assignment(file: UploadFile = File(...)):
-    save_path = f"uploads/assignment-{file.filename}"
-    os.makedirs("uploads", exist_ok=True)
+# @app.post("/upload/assignment")
+# async def upload_assignment(file: UploadFile = File(...)):
+#     save_path = f"uploads/assignment-{file.filename}"
+#     os.makedirs("uploads", exist_ok=True)
 
-    with open(save_path, "wb") as f:
-        f.write(await file.read())
+#     with open(save_path, "wb") as f:
+#         f.write(await file.read())
 
-    stored_files.append({"source": "Assignment", "path": save_path})
-    rebuild_vectorstore()
-    return {"status": "assignment stored & vector updated"}
+#     stored_files.append({"source": "Assignment", "path": save_path})
+#     rebuild_vectorstore()
+#     return {"status": "assignment stored & vector updated"}
 
 
 @app.post("/ask")
+
 def ask(data: AskInput):
     global retriever
 
     if retriever is None:
         return {"error": "upload book + assignment first"}
 
-    ctx = retriever.invoke(data.question)
+    docs = retriever.invoke(data.question)
+    context_text = "\n\n".join([d.page_content for d in docs])
+    chat_hist=convert(messages=data.chat_history)
     chain = prompt | llm
-    resp = chain.invoke({"question": data.question,
-                         "chat_history": data.chat_history,
-                         "context": ctx})
+    resp = chain.invoke({
+        "question": data.question,
+        "chat_history": chat_hist,
+        "context": context_text,
+        "assignment_instructions":assignment_text
+    })
+
     return {"answer": resp.content}
 
 
