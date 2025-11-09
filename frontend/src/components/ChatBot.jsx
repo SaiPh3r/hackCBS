@@ -1,45 +1,42 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { MessageCircle, Paperclip, X } from "lucide-react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import FileUploader from "../pages/FileUploader";
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+const BASE_URL = "http://localhost:2000"; // FastAPI backend
 
-export default function ChatBot() {
+export default function ChatBot({ setAnswer }) {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const fileInputRef = useRef(null);
   const chatContainerRef = useRef(null);
 
-  // ✅ Scroll to bottom on new message
-  React.useEffect(() => {
+  // Scroll to bottom on new messages
+  useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
   }, [messages]);
-
-  // 📤 File upload
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) setUploadedFile(file);
-  };
 
   const handleSendFile = () => {
     if (uploadedFile) {
       setMessages((prev) => [
         ...prev,
         { sender: "user", text: `Uploaded file: ${uploadedFile.name}` },
-        { sender: "bot", text: `Got it! "${uploadedFile.name}" has been uploaded successfully.` },
+        {
+          sender: "bot",
+          text: `✅ Got it! "${uploadedFile.name}" has been uploaded successfully.`,
+        },
       ]);
       setShowUploadModal(false);
       setUploadedFile(null);
     }
   };
 
-  // 💬 Handle send message with Gemini response
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
@@ -49,67 +46,81 @@ export default function ChatBot() {
     setLoading(true);
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const response = await fetch(`${BASE_URL}/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: inputValue,
+          chat_history: messages.map((msg) => ({
+            sender: msg.sender,
+            text: msg.text,
+          })),
+        }),
+      });
 
-      const chatHistory = messages.map((msg) => ({
-        role: msg.sender === "bot" ? "model" : "user",
-        parts: [{ text: msg.text }],
-      }));
+      const data = await response.json();
 
-      const chat = model.startChat({ history: chatHistory });
+      const botMsg = {
+        sender: "bot",
+        text: data.error
+          ? `⚠️ ${data.error}`
+          : data.answer || "🤖 No response received.",
+      };
 
-      const result = await chat.sendMessage(inputValue);
-      const response = result.response.text();
-
-      setMessages((prev) => [...prev, { sender: "bot", text: response }]);
-    } catch (error) {
-      console.error("Gemini API Error:", error);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: "⚠️ Sorry, there was an issue getting a response." },
-      ]);
+      setMessages((prev) => [...prev, botMsg]);
+      if (setAnswer) setAnswer(data.answer || "");
+    } catch (err) {
+      console.error("API Error:", err);
+      const botMsg = {
+        sender: "bot",
+        text: "⚠️ Sorry, something went wrong with the server.",
+      };
+      setMessages((prev) => [...prev, botMsg]);
+      if (setAnswer) setAnswer("");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <aside className="w-[350px] border-l border-purple-900/30 bg-[#0a0a0a] p-6 flex flex-col">
+    <aside className="w-[400px] border-l h-screen  border-purple-900/30 bg-[#0a0a0a] flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <MessageCircle className="text-purple-400" size={24} />
-        <h3 className="text-xl font-semibold">Assignly AI</h3>
+      <div className="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-purple-900/30">
+        <MessageCircle className="text-purple-400" size={22} />
+        <h3 className="text-lg font-semibold text-gray-100">Assignly AI</h3>
       </div>
 
       {/* Chat Messages */}
       <div
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto space-y-4 mb-4 scrollbar-thin scrollbar-thumb-purple-800/50 scrollbar-track-transparent"
+        className="flex-1 overflow-y-auto   px-6 py-4 space-y-4 scrollbar-thin scrollbar-thumb-purple-800/50 scrollbar-track-transparent"
       >
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`p-3 rounded-lg max-w-[85%] animate-fadeIn ${
+            className={`max-w-[80%] p-3 rounded-xl text-sm animate-fadeIn ${
               msg.sender === "bot"
-                ? "bg-purple-700/30 text-left self-start"
-                : "bg-purple-600 text-right self-end ml-auto"
+                ? "bg-[#1a1a1a] text-gray-200 self-start"
+                : "bg-purple-700/70 text-white self-end ml-auto"
             }`}
           >
             {msg.text}
           </div>
         ))}
         {loading && (
-          <div className="text-gray-400 text-sm italic animate-pulse">Assignly is typing...</div>
+          <div className="text-gray-400 text-sm italic animate-pulse">
+            Assignly is typing...
+          </div>
         )}
       </div>
 
-      {/* Input Area */}
-      <div className="flex gap-2 items-center">
+      {/* Input Bar (Sticky Bottom) */}
+      <div className="border-t border-purple-900/30 w-auto p-4 bottom-0 fixed flex items-center gap-2 bg-[#0a0a0a]">
         <button
           onClick={() => setShowUploadModal(true)}
-          className="bg-purple-700 hover:bg-purple-800 px-3 py-2 rounded-md text-sm font-semibold flex items-center gap-2"
+          className="bg-purple-700/30 hover:bg-purple-700/50 p-2 rounded-lg transition"
         >
-          <Paperclip size={16} />
+          <Paperclip size={16} className="text-purple-400" />
         </button>
 
         <input
@@ -118,13 +129,13 @@ export default function ChatBot() {
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-          className="flex-1 bg-[#111] border border-purple-800/40 rounded-md px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-600"
+          className="flex-1 bg-[#111] border border-purple-800/40 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-700"
         />
 
         <button
           onClick={handleSendMessage}
           disabled={loading}
-          className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-md text-sm font-semibold disabled:opacity-50"
+          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition disabled:opacity-50"
         >
           Send
         </button>
@@ -149,24 +160,12 @@ export default function ChatBot() {
             </h3>
 
             {!uploadedFile ? (
-              <>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <button
-                  onClick={() => fileInputRef.current.click()}
-                  className="px-6 py-3 bg-purple-700 hover:bg-purple-800 rounded-lg font-semibold"
-                >
-                  Choose File
-                </button>
-              </>
+              <FileUploader setUploadedFile={setUploadedFile} />
             ) : (
               <>
                 <p className="text-gray-300 mb-4">
-                  Selected: <span className="font-semibold">{uploadedFile.name}</span>
+                  Selected:{" "}
+                  <span className="font-semibold">{uploadedFile.name}</span>
                 </p>
                 <button
                   onClick={handleSendFile}
