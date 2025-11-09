@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Request , Query
+from fastapi import HTTPException
+from googleapiclient.errors import HttpError
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -17,12 +19,15 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from fastapi import UploadFile, File
 from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain.prompts import PromptTemplate,ChatPromptTemplate,MessagesPlaceholder
+from langchain_core.prompts import PromptTemplate,ChatPromptTemplate,MessagesPlaceholder
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 load_dotenv()
+from docx import Document
+
+
 
 emb = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
 
@@ -83,7 +88,7 @@ def oauth2callback(request: Request):
     global user_creds
     flow.fetch_token(authorization_response=str(request.url))
     user_creds = flow.credentials
-    return RedirectResponse(url="http://localhost:5173/")
+    return RedirectResponse(url="http://localhost:5173")
 
 @app.get("/courses")
 def get_courses():
@@ -96,6 +101,14 @@ def get_courses():
     return {"courses": courses}
 
 
+@app.get("/signout")
+
+def signout():
+    global user_creds
+    if user_creds:
+        user_creds = None
+        return {"status": "✅ Signed out successfully"}
+    return {"status": "⚠️ No active session"}
 
 @app.post("/assignments")
 def get_assignments(course: Course):
@@ -201,8 +214,7 @@ def download_file(file_id: str):
         "text": text
     }
     
-
-@app.post("/upload_assignment/")
+@app.post("/upload_assignment")
 async def upload_pdf(file: UploadFile = File(...)):
     global retrieval
     pdf_bytes = await file.read()
@@ -302,7 +314,6 @@ async def upload_book(file: UploadFile = File(...)):
 
 
 @app.post("/ask")
-
 def ask(data: AskInput):
     global retriever
 
@@ -324,51 +335,140 @@ def ask(data: AskInput):
 
 
 
-@app.post("/submit_assignment")
-def submit_assignment(course_id: str = Query(...), assignment_id: str = Query(...), submission_id: str = Query(...)):
-    if not user_creds:
-        return {"error": "User not logged in"}
+# @app.post("/submit_assignment")
+# def submit_assignment(course_id: str = Query(...), assignment_id: str = Query(...), submission_id: str = Query(...)):
+#     if not user_creds:
+#         return {"error": "User not logged in"}
     
-    service = build("classroom", "v1", credentials=user_creds)
+#     service = build("classroom", "v1", credentials=user_creds)
 
-    # ATTACH FILE
-    FILE_PATH = "downloads/output.pdf"   # change file name if different
+#     # ATTACH FILE
+#     FILE_PATH = "downloads/output.pdf"   # change file name if different
 
-    drive = build("drive", "v3", credentials=user_creds)
-    file_metadata = {"name": os.path.basename(FILE_PATH)}
-    media = MediaFileUpload(FILE_PATH)
+#     drive = build("drive", "v3", credentials=user_creds)
+#     file_metadata = {"name": os.path.basename(FILE_PATH)}
+#     media = MediaFileUpload(FILE_PATH)
 
-    file = drive.files().create(body=file_metadata, media_body=media).execute()
-    file_id = file.get("id")
+#     file = drive.files().create(body=file_metadata, media_body=media).execute()
+#     file_id = file.get("id")
 
-    body = {
-        "assignmentSubmission": {
-            "attachments": [
-                {
-                    "driveFile": {
-                        "id": file_id,
-                        "title": os.path.basename(FILE_PATH)
-                    }
-                }
-            ]
-        }
-    }
+#     body = {
+#         "assignmentSubmission": {
+#             "attachments": [
+#                 {
+#                     "driveFile": {
+#                         "id": file_id,
+#                         "title": os.path.basename(FILE_PATH)
+#                     }
+#                 }
+#             ]
+#         }
+#     }
 
-    service.courses().courseWork().studentSubmissions().patch(
-        courseId=course_id,
-        courseWorkId=assignment_id,
-        id=submission_id,
-        updateMask="assignmentSubmission"
-    ).execute()
+#     service.courses().courseWork().studentSubmissions().patch(
+#         courseId=course_id,
+#         courseWorkId=assignment_id,
+#         id=submission_id,
+#         updateMask="assignmentSubmission"
+#     ).execute()
 
     # TURN IN
-    service.courses().courseWork().studentSubmissions().turnIn(
-        courseId=course_id,
-        courseWorkId=assignment_id,
-        id=submission_id
-    ).execute()
+    # service.courses().courseWork().studentSubmissions().turnIn(
+    #     courseId=course_id,
+    #     courseWorkId=assignment_id,
+    #     id=submission_id
+    # ).execute()
 
-    return {"status": "submitted ", "file_attached": file_id}
+    # return {"status": "submitted ", "file_attached": file_id}
+
+
+# @app.post("/submit_assignment")
+# def submit_assignment(course_id: str, assignment_id: str, submission_id: str):
+#     creds = user_creds  # however you load your Google API credentials
+#     service = build("classroom", "v1", credentials=creds)
+
+#     try:
+#         # ✅ Correct method for marking as submitted
+#         service.courses().courseWork().studentSubmissions().turnIn(
+#             courseId=course_id,
+#             courseWorkId=assignment_id,
+#             id=submission_id,
+#         ).execute()
+
+#         return {"status": "✅ Assignment successfully turned in!"}
+
+#     except HttpError as e:
+#         print("❌ Google Classroom API Error:", e)
+#         raise HTTPException(status_code=e.resp.status, detail=str(e))
+
+
+def create_txt_from_text(text: str, filename: str = "output.txt"):
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(text)
+    return filename
+
+class SubmissionData(BaseModel):
+    course_id: str
+    assignment_id: str
+    submission_id: str
+    answer_text: str
+from docx import Document
+
+def create_docx_from_text(text: str, filename: str = "output.docx"):
+    document = Document()
+    document.add_paragraph(text)
+    document.save(filename)
+    return filename
+@app.post("/submit_assignment")
+async def submit_assignment(data: SubmissionData):
+    """
+    Uploads the student's assignment answer as a DOCX file to Google Drive
+    and returns the file URL for download.
+    """
+    global user_creds
+
+    if not user_creds:
+        raise HTTPException(status_code=401, detail="⚠️ User not logged in")
+
+    answer_text = data.answer_text
+
+    try:
+        # 1️⃣ Create DOCX from the provided text
+        file_path = create_docx_from_text(answer_text)
+
+        # 2️⃣ Upload to Google Drive
+        drive_service = build("drive", "v3", credentials=user_creds)
+        file_metadata = {"name": os.path.basename(file_path)}
+        media = MediaFileUpload(
+            file_path,
+            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+
+        uploaded_file = drive_service.files().create(
+            body=file_metadata, media_body=media, fields="id"
+        ).execute()
+        file_id = uploaded_file.get("id")
+
+        # 3️⃣ Make it viewable / downloadable
+        drive_service.permissions().create(
+            fileId=file_id,
+            body={"role": "reader", "type": "anyone"}
+        ).execute()
+
+        # 4️⃣ Return the file URL
+        return {
+            "status": "✅ Assignment uploaded successfully!",
+            "file_url": f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+        }
+
+    except HttpError as e:
+        detail = e._get_reason() or str(e)
+        raise HTTPException(status_code=e.resp.status, detail=detail)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
 
 if __name__ == "__main__":
