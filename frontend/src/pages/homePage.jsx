@@ -10,7 +10,6 @@ export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Refs for animations
   const heroRef = useRef(null);
   const featuresRef = useRef(null);
   const aboutRef = useRef(null);
@@ -18,7 +17,6 @@ export default function HomePage() {
   const navbarRef = useRef(null);
 
   useEffect(() => {
-    // Navbar fade-in
     gsap.from(navbarRef.current, {
       opacity: 0,
       y: -40,
@@ -26,7 +24,6 @@ export default function HomePage() {
       ease: "power3.out",
     });
 
-    // Hero text animation
     gsap.from(heroRef.current.children, {
       y: 80,
       opacity: 0,
@@ -36,7 +33,6 @@ export default function HomePage() {
       delay: 0.3,
     });
 
-    // Features animation on scroll
     gsap.from(featuresRef.current.children, {
       scrollTrigger: {
         trigger: featuresRef.current,
@@ -49,7 +45,6 @@ export default function HomePage() {
       ease: "power2.out",
     });
 
-    // About section fade in
     gsap.from(aboutRef.current, {
       scrollTrigger: {
         trigger: aboutRef.current,
@@ -61,7 +56,6 @@ export default function HomePage() {
       ease: "power2.out",
     });
 
-    // Pricing section animation
     gsap.from(pricingRef.current.children, {
       scrollTrigger: {
         trigger: pricingRef.current,
@@ -77,7 +71,6 @@ export default function HomePage() {
 
   return (
     <div className="font-sans bg-black text-white min-h-screen scroll-smooth">
-      {/* Navbar */}
       <nav
         ref={navbarRef}
         className="fixed top-0 left-0 w-full bg-black/90 backdrop-blur-md z-50 border-b border-purple-800/20"
@@ -145,7 +138,6 @@ export default function HomePage() {
         )}
       </nav>
 
-      {/* Hero Section */}
       <section
         id="home"
         ref={heroRef}
@@ -176,7 +168,6 @@ export default function HomePage() {
         </button>
       </section>
 
-      {/* Features Section */}
       <section
         id="features"
         ref={featuresRef}
@@ -225,7 +216,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* About Section */}
       <section
         id="about"
         ref={aboutRef}
@@ -245,7 +235,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
       <section
         id="pricing"
         ref={pricingRef}
@@ -289,7 +278,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="bg-black border-t border-purple-900/30 py-6 text-center text-gray-500">
         © {new Date().getFullYear()} Assignly — Built with ❤️ by Students.
       </footer>

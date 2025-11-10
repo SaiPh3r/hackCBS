@@ -17,7 +17,6 @@ export default function ClassroomDashboard() {
   const [assignmentDetails, setAssignmentDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
 
-  // ✅ Track ChatBot-generated answer dynamically
   const [chatAnswer, setChatAnswer] = useState("");
 
   const navigate = useNavigate();
@@ -117,7 +116,6 @@ export default function ClassroomDashboard() {
     }
   };
 
-  // ✅ Updated submit to use ChatBot-generated answer dynamically
   const handleSubmitAssignment = async () => {
     try {
       if (!selectedCourse || !selectedAssignment || !assignmentDetails) {
@@ -149,18 +147,18 @@ export default function ClassroomDashboard() {
       });
 
       if (!response.ok) {
-        throw new Error(`❌ Failed to upload assignment: ${response.status}`);
+        throw new Error(` Failed to upload assignment: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("✅ Upload response:", data);
+      console.log(" Upload response:", data);
 
       if (data.file_url) {
         const downloadLink = document.createElement("a");
         downloadLink.href = data.file_url;
         downloadLink.target = "_blank";
         downloadLink.rel = "noopener noreferrer";
-        downloadLink.textContent = "📥 Download your assignment DOCX";
+        downloadLink.textContent = " Download your assignment DOCX";
         downloadLink.className = "text-purple-400 underline mt-4 block";
 
         const container = document.getElementById("submission-link-container");
@@ -168,20 +166,19 @@ export default function ClassroomDashboard() {
           container.innerHTML = "";
           container.appendChild(downloadLink);
         } else {
-          alert(`✅ Assignment uploaded! Download here: ${data.file_url}`);
+          alert(` Assignment uploaded! Download here: ${data.file_url}`);
         }
       } else {
-        alert("✅ Assignment uploaded successfully, but no file URL returned.");
+        alert(" Assignment uploaded successfully, but no file URL returned.");
       }
     } catch (error) {
-      console.error("❌ Error uploading assignment:", error);
+      console.error(" Error uploading assignment:", error);
       alert("Upload failed. Check console for details.");
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white flex">
-      {/* Sidebar */}
       <aside className="w-64 bg-gradient-to-b from-[#0b0b0b] to-[#141414] border-r border-purple-700/20 p-6 flex flex-col justify-between">
         <div>
           <button
@@ -211,29 +208,28 @@ export default function ClassroomDashboard() {
         </div>
 
         <div className="border-t border-purple-800/20 pt-4 mt-6">
-          <button
-            onClick={async () => {
+         <button
+  onClick={async () => {
     try {
-      const res = await fetch("http://localhost:2000/signout");
-      const data = await res.json();
-      console.log(data.status);
-      alert("You have been signed out successfully!");
+      await fetch(`${BASE_URL}/signout`, { method: "GET" });
       setIsLoggedIn(false);
       setCourses([]);
       setAssignments([]);
       setSelectedCourse(null);
       setSelectedAssignment(null);
       setAssignmentDetails(null);
-      navigate("/"); // redirect to home or login page
+      setChatAnswer("");
+      navigate("/"); 
     } catch (err) {
       console.error("Logout failed:", err);
     }
   }}
-            className="flex items-center w-full px-3 py-2 rounded-lg text-left hover:bg-red-700/20 hover:text-red-400 transition-all duration-200"
-          >
-            <span className="text-lg mr-2">🚪</span>
-            <span>Logout</span>
-          </button>
+  className="flex items-center w-full px-3 py-2 rounded-lg text-left hover:bg-red-700/20 hover:text-red-400 transition-all duration-200"
+>
+  <span className="text-lg mr-2">🚪</span>
+  <span>Logout</span>
+</button>
+
 
           <p className="text-xs text-gray-500 mt-3 text-center">
             © 2025 Assignly Classroom
@@ -241,7 +237,6 @@ export default function ClassroomDashboard() {
         </div>
       </aside>
 
-      {/* Main Section */}
       <main className="flex-1 p-10">
         {loading ? (
           <div className="text-center mt-40 text-xl animate-pulse">Loading...</div>
@@ -266,14 +261,13 @@ export default function ClassroomDashboard() {
                 setAssignments([]);
                 setSelectedAssignment(null);
                 setAssignmentDetails(null);
-                setChatAnswer(""); // clear previous answer
+                setChatAnswer(""); 
               }}
               className="mt-10 px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 mb-5"
             >
               ← Back to Courses
             </button>
 
-            {/* Assignments List */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {assignments.length > 0 ? (
                 assignments.map((a, index) => (
@@ -296,7 +290,6 @@ export default function ClassroomDashboard() {
               )}
             </div>
 
-            {/* Assignment Details Section */}
             {selectedAssignment && assignmentDetails && (
               <div className="mt-10 bg-gray-900 p-6 rounded-2xl shadow-lg">
                 {detailsLoading ? (
@@ -334,7 +327,6 @@ export default function ClassroomDashboard() {
                       Submit Assignment
                     </button>
 
-                    {/* ✅ Download link container */}
                     <div id="submission-link-container" className="mt-4"></div>
                   </>
                 )}
@@ -362,7 +354,6 @@ export default function ClassroomDashboard() {
         )}
       </main>
 
-      {/* Chat Aside */}
       <ChatBot setAnswer={setChatAnswer} />
     </div>
   );

@@ -8,7 +8,7 @@ function FileUploader() {
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
-    setMessage(""); // reset message when selecting a new file
+    setMessage(""); 
   };
 
   const handleUpload = async () => {
@@ -28,12 +28,12 @@ function FileUploader() {
 
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const data = await response.json();
-      setMessage(`✅ "${file.name}" uploaded successfully!`);
+      setMessage(` "${file.name}" uploaded successfully!`);
       setFile(null);
       console.log("Server response:", data);
     } catch (err) {
       console.error("Upload error:", err);
-      setMessage("⚠️ File upload failed.");
+      setMessage(" File upload failed.");
     }
   };
 

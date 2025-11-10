@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { MessageCircle, Paperclip, X } from "lucide-react";
 import FileUploader from "../pages/FileUploader";
 
-const BASE_URL = "http://localhost:2000"; // FastAPI backend
+const BASE_URL = "http://localhost:2000"; 
 
 export default function ChatBot({ setAnswer }) {
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -12,7 +12,6 @@ export default function ChatBot({ setAnswer }) {
   const [loading, setLoading] = useState(false);
   const chatContainerRef = useRef(null);
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
@@ -29,7 +28,7 @@ export default function ChatBot({ setAnswer }) {
         { sender: "user", text: `Uploaded file: ${uploadedFile.name}` },
         {
           sender: "bot",
-          text: `✅ Got it! "${uploadedFile.name}" has been uploaded successfully.`,
+          text: ` Got it! "${uploadedFile.name}" has been uploaded successfully.`,
         },
       ]);
       setShowUploadModal(false);
@@ -63,8 +62,8 @@ export default function ChatBot({ setAnswer }) {
       const botMsg = {
         sender: "bot",
         text: data.error
-          ? `⚠️ ${data.error}`
-          : data.answer || "🤖 No response received.",
+          ? ` ${data.error}`
+          : data.answer || " No response received.",
       };
 
       setMessages((prev) => [...prev, botMsg]);
@@ -73,7 +72,7 @@ export default function ChatBot({ setAnswer }) {
       console.error("API Error:", err);
       const botMsg = {
         sender: "bot",
-        text: "⚠️ Sorry, something went wrong with the server.",
+        text: " Sorry, something went wrong with the server.",
       };
       setMessages((prev) => [...prev, botMsg]);
       if (setAnswer) setAnswer("");
@@ -84,13 +83,11 @@ export default function ChatBot({ setAnswer }) {
 
   return (
     <aside className="w-[400px] border-l h-screen  border-purple-900/30 bg-[#0a0a0a] flex flex-col">
-      {/* Header */}
       <div className="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-purple-900/30">
         <MessageCircle className="text-purple-400" size={22} />
         <h3 className="text-lg font-semibold text-gray-100">Assignly AI</h3>
       </div>
 
-      {/* Chat Messages */}
       <div
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto   px-6 py-4 space-y-4 scrollbar-thin scrollbar-thumb-purple-800/50 scrollbar-track-transparent"
@@ -114,7 +111,6 @@ export default function ChatBot({ setAnswer }) {
         )}
       </div>
 
-      {/* Input Bar (Sticky Bottom) */}
       <div className="border-t border-purple-900/30 w-auto p-4 bottom-0 fixed flex items-center gap-2 bg-[#0a0a0a]">
         <button
           onClick={() => setShowUploadModal(true)}
@@ -141,7 +137,6 @@ export default function ChatBot({ setAnswer }) {
         </button>
       </div>
 
-      {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-[#121212] border border-purple-800 rounded-2xl p-8 w-[400px] text-center shadow-2xl relative">
